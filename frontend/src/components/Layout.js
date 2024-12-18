@@ -1,13 +1,21 @@
 // Layout.js
 import { FileText, Home, Menu, Upload, User, X } from "lucide-react";
 import React, { useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const routes = [
+    { path: "/", name: "Dashboard", icon: Home },
+    { path: "/documents", name: "Documents", icon: FileText },
+    { path: "/upload", name: "Upload", icon: Upload },
+    { path: "/users", name: "Users", icon: User, role: "boss" },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -44,40 +52,22 @@ const Layout = () => {
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {/* Mobile Navigation Links */}
-                <Link
-                  to="/"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Home className="mr-3 h-6 w-6" />
-                  Dashboard
-                </Link>
-                <Link
-                  to="/documents"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <FileText className="mr-3 h-6 w-6" />
-                  Documents
-                </Link>
-                <Link
-                  to="/upload"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Upload className="mr-3 h-6 w-6" />
-                  Upload
-                </Link>
-                {user.role === "boss" && (
+                {routes.map((route) => (
                   <Link
-                    to="/users"
-                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
+                    key={route.path}
+                    to={route.path}
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white ${
+                      location.pathname === route.path
+                        ? "bg-gray-700 text-white"
+                        : ""
+                    }`}
                     onClick={() => setSidebarOpen(false)}
+                    hidden={route.role && route.role !== user.role}
                   >
-                    <User className="mr-3 h-6 w-6" />
-                    Users
+                    <route.icon className="mr-3 h-6 w-6" />
+                    {route.name}
                   </Link>
-                )}
+                ))}
               </nav>
             </div>
           </div>
@@ -93,36 +83,21 @@ const Layout = () => {
             </div>
             <div className="flex-1 flex flex-col overflow-y-auto">
               <nav className="flex-1 px-2 py-4 bg-gray-800 space-y-1">
-                <Link
-                  to="/"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-                >
-                  <Home className="mr-3 h-6 w-6" />
-                  Dashboard
-                </Link>
-                <Link
-                  to="/documents"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-                >
-                  <FileText className="mr-3 h-6 w-6" />
-                  Documents
-                </Link>
-                <Link
-                  to="/upload"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-                >
-                  <Upload className="mr-3 h-6 w-6" />
-                  Upload
-                </Link>
-                {user.role === "boss" && (
+                {routes.map((route) => (
                   <Link
-                    to="/users"
-                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
+                    key={route.path}
+                    to={route.path}
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white ${
+                      location.pathname === route.path
+                        ? "bg-gray-700 text-white"
+                        : ""
+                    }`}
+                    hidden={route.role && route.role !== user.role}
                   >
-                    <User className="mr-3 h-6 w-6" />
-                    Users
+                    <route.icon className="mr-3 h-6 w-6" />
+                    {route.name}
                   </Link>
-                )}
+                ))}
               </nav>
             </div>
           </div>
