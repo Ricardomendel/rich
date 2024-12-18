@@ -1,8 +1,8 @@
 // Layout.js
-import React, { useState } from 'react';
-import { Link, useNavigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Home, FileText, Upload, Menu, X } from 'lucide-react';
+import { FileText, Home, Menu, Upload, User, X } from "lucide-react";
+import React, { useState } from "react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,7 +11,7 @@ const Layout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -24,7 +24,7 @@ const Layout = () => {
             className="fixed inset-0 bg-gray-600 bg-opacity-75"
             onClick={() => setSidebarOpen(false)}
           />
-          
+
           {/* Sidebar Component */}
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800">
             <div className="absolute top-0 right-0 -mr-12 pt-2">
@@ -38,7 +38,9 @@ const Layout = () => {
             {/* Mobile Sidebar Content */}
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
-                <h1 className="text-xl font-bold text-white">Paperless System</h1>
+                <h1 className="text-xl font-bold text-white">
+                  Paperless System
+                </h1>
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {/* Mobile Navigation Links */}
@@ -66,6 +68,16 @@ const Layout = () => {
                   <Upload className="mr-3 h-6 w-6" />
                   Upload
                 </Link>
+                {user.role === "boss" && (
+                  <Link
+                    to="/users"
+                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <User className="mr-3 h-6 w-6" />
+                    Users
+                  </Link>
+                )}
               </nav>
             </div>
           </div>
@@ -102,6 +114,15 @@ const Layout = () => {
                   <Upload className="mr-3 h-6 w-6" />
                   Upload
                 </Link>
+                {user.role === "boss" && (
+                  <Link
+                    to="/users"
+                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
+                  >
+                    <User className="mr-3 h-6 w-6" />
+                    Users
+                  </Link>
+                )}
               </nav>
             </div>
           </div>

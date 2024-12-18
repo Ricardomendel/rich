@@ -179,4 +179,15 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// Get all users route
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Error fetching user data' });
+  }
+});
+
 module.exports = router;
