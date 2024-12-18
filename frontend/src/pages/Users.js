@@ -89,7 +89,7 @@ const Users = () => {
             {filteredUsers.map((doc) => (
               <li key={doc._id}>
                 <Link
-                  to={`/documents/${doc._id}`}
+                  to={`/users/documents/${doc._id}`}
                   className="block hover:bg-gray-50"
                 >
                   <div className="px-4 py-4 flex items-center sm:px-6">

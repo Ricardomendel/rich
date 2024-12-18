@@ -67,11 +67,18 @@ const documentController = {
   // Get all documents
   async getAllDocuments(req, res) {
     try {
-      const documents = await Document.find(
-        req.user.role === "boss" ? {} : { createdBy: req.user._id }
-      ).sort({
-        createdAt: -1,
-      });
+      const { userId } = req.query;
+      const filter =
+        req.user.role === "boss"
+          ? userId
+            ? { createdBy: userId }
+            : {}
+          : { createdBy: req.user._id };
+
+      const documents = await Document.find(filter)
+        .sort({ createdAt: -1 })
+        .lean()
+        .exec();
 
       res.json({ documents });
     } catch (error) {
@@ -83,16 +90,11 @@ const documentController = {
   // Get single document
   async getDocument(req, res) {
     try {
-      const document = await Document.findOne({
-        _id: req.params.id,
-        createdBy: req.user._id,
-      });
+      const document = await Document.findById(req.params.id).lean().exec();
 
-      if (!document) {
+      if (!document || document.createdBy.toString() !== req.user._id.toString()) {
         return res.status(404).json({ error: "Document not found" });
       }
-
-      console.log("Document found:", document);
 
       res.json({ document });
     } catch (error) {
@@ -107,28 +109,26 @@ const documentController = {
       const document = await Document.findOne({
         _id: req.params.id,
         createdBy: req.user._id,
-      });
+      }).lean().exec();
 
       if (!document) {
         return res.status(404).json({ error: "Document not found" });
       }
 
-      const filePath = document.filePath;
+      const { filePath, fileType, fileName, fileSize } = document;
 
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: "File not found on server" });
-      }
+      fs.stat(filePath, (err, stats) => {
+        if (err || !stats.isFile()) {
+          return res.status(404).json({ error: "File not found on server" });
+        }
 
-      res.setHeader("Content-Type", document.fileType);
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${document.fileName}"`
-      );
-      res.setHeader("Content-Length", document.fileSize);
+        res.setHeader("Content-Type", fileType);
+        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        res.setHeader("Content-Length", fileSize);
 
-      // Stream the file
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.pipe(res);
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+      });
     } catch (error) {
       console.error("Download error:", error);
       res.status(500).json({ error: "Error downloading document" });

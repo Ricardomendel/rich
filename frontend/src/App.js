@@ -48,6 +48,7 @@ function App() {
 
               {/* Users */}
               <Route path="/users" element={<Users />} />
+              <Route path="/users/documents/:userId" element={<Documents />} />
 
               {/* Catch all route - redirect to dashboard */}
               <Route path="*" element={<Navigate to="/" replace />} />
