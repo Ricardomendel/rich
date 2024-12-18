@@ -1,8 +1,28 @@
 // .vscode/settings.json
 {
-    "css.validate": false,
-    "tailwindCSS.emmetCompletions": true,
-    "editor.quickSuggestions": {
-      "strings": true
-    }
-  }
+  "css.validate": false,
+  "tailwindCSS.emmetCompletions": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#7dfe67",
+    "activityBar.background": "#7dfe67",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#8093fe",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#7dfe67",
+    "statusBar.background": "#52fe34",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#27fe01",
+    "statusBarItem.remoteBackground": "#52fe34",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#52fe34",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#52fe3499",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#52fe34"
+}

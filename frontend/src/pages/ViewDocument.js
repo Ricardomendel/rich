@@ -1,17 +1,11 @@
 // ViewDocument.js
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { 
-  FileText, 
-  Download, 
-  Pencil, 
-  Trash,     
-  X 
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
+import { Download, FileText, Pencil, Trash, X } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import api from "../services/api";
 
 const ViewDocument = () => {
   const { id } = useParams();
@@ -21,37 +15,38 @@ const ViewDocument = () => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
-    title: '',
-    category: '',
-    tags: ''
+    title: "",
+    category: "",
+    tags: "",
   });
 
   const fetchDocument = useCallback(async () => {
     try {
-
       const response = await api.get(`/documents/${id}`);
-      
+
       if (!response.data || !response.data.document) {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
 
       const documentData = response.data.document;
-      console.log('Fetched document:', documentData);
-      
+      console.log("Fetched document:", documentData);
+
       setDocument(documentData);
       setEditForm({
-        title: documentData?.title || '',
-        category: documentData?.category || 'other',
-        tags: documentData.tags ? documentData.tags.join(', ') : ''
+        title: documentData?.title || "",
+        category: documentData?.category || "other",
+        tags: documentData.tags ? documentData.tags.join(", ") : "",
       });
     } catch (err) {
-      console.error('Error fetching document:', err);
-      if (err.code === 'ERR_NETWORK') {
-        setError('Unable to connect to server. Please check if the server is running.');
+      console.error("Error fetching document:", err);
+      if (err.code === "ERR_NETWORK") {
+        setError(
+          "Unable to connect to server. Please check if the server is running."
+        );
       } else {
-        setError(err.response?.data?.error || 'Failed to load document');
+        setError(err.response?.data?.error || "Failed to load document");
       }
-    } 
+    }
   }, [id]);
 
   useEffect(() => {
@@ -60,43 +55,45 @@ const ViewDocument = () => {
 
   const handleDownload = async (documentId, filename) => {
     try {
-      console.log('Downloading document:', documentId, filename);
-
       const response = await api.get(`/documents/${documentId}/download`, {
-        responseType: 'blob',
+        responseType: "blob",
         headers: {
-          'Accept': '*/*'
-        }
+          Accept: "*/*",
+        },
       });
 
       // Create download URL
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = window.document.createElement('a');
+      const link = window.document.createElement("a");
       link.href = url;
-      
+
       // Set the filename
-      link.setAttribute('download', filename);
+      link.setAttribute("download", filename);
       window.document.body.appendChild(link);
       link.click();
-      
+
       // Cleanup
       setTimeout(() => {
         window.document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       }, 100);
     } catch (err) {
-      console.error('Download error:', err);
-      setError(`Failed to download document: ${err.response?.data?.error || err.message}`);
+      console.error("Download error:", err);
+      setError(
+        `Failed to download document: ${
+          err.response?.data?.error || err.message
+        }`
+      );
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
+    if (window.confirm("Are you sure you want to delete this document?")) {
       try {
         await api.delete(`/documents/${id}`);
-        navigate('/documents');
+        navigate("/documents");
       } catch (err) {
-        setError('Failed to delete document');
+        setError("Failed to delete document");
       }
     }
   };
@@ -108,7 +105,22 @@ const ViewDocument = () => {
       setDocument(response.data);
       setIsEditing(false);
     } catch (err) {
-      setError('Failed to update document');
+      setError("Failed to update document");
+    }
+  };
+
+  const handlePrint = async (fileName) => {
+    try {
+      const printWindow = window.open(
+        `${process.env.REACT_APP_API_URL}/uploads/${fileName}`,
+        "_blank"
+      );
+      printWindow?.print();
+    } catch (err) {
+      console.error("Print error:", err);
+      setError(
+        `Failed to print document: ${err.response?.data?.error || err.message}`
+      );
     }
   };
 
@@ -127,13 +139,21 @@ const ViewDocument = () => {
         <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
           <div>
             <h3 className="text-lg leading-6 font-medium text-gray-900">
-              {isEditing ? 'Edit Document' : document?.title}
+              {isEditing ? "Edit Document" : document?.title}
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Uploaded on {new Date(document?.createdAt || '').toLocaleDateString()}
+              Uploaded on{" "}
+              {new Date(document?.createdAt || "").toLocaleDateString()}
             </p>
           </div>
           <div className="flex space-x-3">
+            <button
+              onClick={() => handlePrint(document?.fileName)}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Print
+            </button>
             <button
               onClick={() => handleDownload(document?._id, document?.filename)}
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
@@ -146,7 +166,7 @@ const ViewDocument = () => {
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               <Pencil className="h-4 w-4 mr-2" />
-              {isEditing ? 'Cancel' : 'Edit'}
+              {isEditing ? "Cancel" : "Edit"}
             </button>
             <button
               onClick={handleDelete}
@@ -169,7 +189,9 @@ const ViewDocument = () => {
                 <input
                   type="text"
                   value={editForm.title}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, title: e.target.value })
+                  }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
                 />
               </div>
@@ -179,7 +201,9 @@ const ViewDocument = () => {
                 </label>
                 <select
                   value={editForm.category}
-                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, category: e.target.value })
+                  }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
                 >
                   <option value="">Select a category</option>
@@ -196,7 +220,9 @@ const ViewDocument = () => {
                 <input
                   type="text"
                   value={editForm.tags}
-                  onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, tags: e.target.value })
+                  }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
                   placeholder="Enter tags separated by commas"
                 />
@@ -231,7 +257,7 @@ const ViewDocument = () => {
               <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">Category</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {document?.category || 'Uncategorized'}
+                  {document?.category || "Uncategorized"}
                 </dd>
               </div>
               <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -256,7 +282,9 @@ const ViewDocument = () => {
                 </dd>
               </div>
               <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Upload Date</dt>
+                <dt className="text-sm font-medium text-gray-500">
+                  Upload Date
+                </dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                   {new Date(document?.createdAt).toLocaleString()}
                 </dd>
@@ -264,16 +292,20 @@ const ViewDocument = () => {
 
               {/* Document Preview */}
               <div className="bg-white px-4 py-5 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500 mb-4">Preview</dt>
+                <dt className="text-sm font-medium text-gray-500 mb-4">
+                  Preview
+                </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {document &&
-                    <DocViewer documents={[
-                      {
-                        uri: `${process.env.REACT_APP_API_URL}/uploads/${document?.fileName}`
-                      }
-                    ]}
-                    pluginRenderers={DocViewerRenderers} 
-                    />}
+                  {document && (
+                    <DocViewer
+                      documents={[
+                        {
+                          uri: `${process.env.REACT_APP_API_URL}/uploads/${document?.fileName}`,
+                        },
+                      ]}
+                      pluginRenderers={DocViewerRenderers}
+                    />
+                  )}
                 </dd>
               </div>
 
