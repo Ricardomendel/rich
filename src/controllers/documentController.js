@@ -67,7 +67,9 @@ const documentController = {
   // Get all documents
   async getAllDocuments(req, res) {
     try {
-      const documents = await Document.find({ createdBy: req.user._id }).sort({
+      const documents = await Document.find(
+        req.user.role === "boss" ? {} : { createdBy: req.user._id }
+      ).sort({
         createdAt: -1,
       });
 
@@ -180,7 +182,7 @@ const documentController = {
       }
 
       document.approvalStatus = status;
-      document.approvalComments = comments;
+      document.approvalComments = comments || "";
       document.approvedBy = req.user._id;
       document.approvalDate = new Date();
 
@@ -211,8 +213,10 @@ const documentController = {
       document.lastPrintedAt = new Date();
       await document.save();
 
-      // Send file for printing
-      res.download(document.filePath);
+      res.json({
+        message: "Document printed successfully",
+        url: `${process.env.SERVER_URL}/uploads/${document.fileName}`,
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

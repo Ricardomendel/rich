@@ -1,7 +1,7 @@
 // ViewDocument.js
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
 import "@cyntler/react-doc-viewer/dist/index.css";
-import { Download, FileText, Pencil, Trash, X } from "lucide-react";
+import { Check, Download, FileText, Pencil, Trash, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -109,18 +109,34 @@ const ViewDocument = () => {
     }
   };
 
-  const handlePrint = async (fileName) => {
+  const handlePrint = async (id) => {
     try {
-      const printWindow = window.open(
-        `${process.env.REACT_APP_API_URL}/uploads/${fileName}`,
-        "_blank"
-      );
-      printWindow?.print();
+      const response = await api.get(`/documents/${id}/print`);
+      const { url } = response.data;
+      const printWindow = window.open(url, "_blank");
+      printWindow.print();
     } catch (err) {
       console.error("Print error:", err);
       setError(
         `Failed to print document: ${err.response?.data?.error || err.message}`
       );
+    }
+  };
+
+  const approveDocument = async (id, status) => {
+    try {
+      if (
+        !window.confirm(`Are you sure you want to ${status} this document?`)
+      ) {
+        return;
+      }
+      const comments = prompt(
+        `Enter ${status === "approved" ? "approval" : "rejection"} comments`
+      );
+      await api.post(`/documents/${id}/approve`, { comments, status });
+      navigate("/documents");
+    } catch (err) {
+      setError("Failed to approve document");
     }
   };
 
@@ -148,7 +164,7 @@ const ViewDocument = () => {
           </div>
           <div className="flex space-x-3">
             <button
-              onClick={() => handlePrint(document?.fileName)}
+              onClick={() => handlePrint(document?._id)}
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               <FileText className="h-4 w-4 mr-2" />
@@ -167,6 +183,29 @@ const ViewDocument = () => {
             >
               <Pencil className="h-4 w-4 mr-2" />
               {isEditing ? "Cancel" : "Edit"}
+            </button>
+            <button
+              onClick={() =>
+                approveDocument(
+                  document?._id,
+                  document?.approvalStatus === "approved"
+                    ? "rejected"
+                    : "approved"
+                )
+              }
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              {document?.approvalStatus === "approved" ? (
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  Revoke Approval
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Approve
+                </>
+              )}
             </button>
             <button
               onClick={handleDelete}
@@ -192,7 +231,7 @@ const ViewDocument = () => {
                   onChange={(e) =>
                     setEditForm({ ...editForm, title: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm h-10 px-3 outline-none"
                 />
               </div>
               <div>
@@ -204,7 +243,7 @@ const ViewDocument = () => {
                   onChange={(e) =>
                     setEditForm({ ...editForm, category: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm h-10 px-3 outline-none"
                 >
                   <option value="">Select a category</option>
                   <option value="invoice">Invoice</option>
@@ -223,7 +262,7 @@ const ViewDocument = () => {
                   onChange={(e) =>
                     setEditForm({ ...editForm, tags: e.target.value })
                   }
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm h-10 px-3 outline-none"
                   placeholder="Enter tags separated by commas"
                 />
               </div>

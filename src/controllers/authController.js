@@ -49,13 +49,11 @@ const authController = {
   // Login user
   async login(req, res) {
     try {
-      console.log('Login request body:', req.body); // Debug log
-
       const { email, password } = req.body;
 
       // Validate input
       if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
+        return res.status(400).json({ error: 'Email or User Name and password are required' });
       }
 
       // Find user

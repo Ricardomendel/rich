@@ -74,6 +74,6 @@ router.get('/:id/download', auth, documentController.downloadDocument);
 
 // Approval routes
 router.post('/:id/approve', auth, roleAuth(['boss']), documentController.approveDocument);
-router.post('/:id/print', auth, documentController.printDocument);
+router.get('/:id/print', auth, documentController.printDocument);
 
 module.exports = router;

@@ -40,14 +40,26 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Department is required'],
     trim: true
   },
+
+  role: {
+    type: String,
+    enum: {
+      values: ['employee', 'boss'],
+      message: '{VALUE} is not a valid role'
+    },
+    default: 'employee'
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
     immutable: true // Prevent modification of creation date
   },
+
   lastLogin: {
     type: Date
   },
+
   active: {
     type: Boolean,
     default: true
