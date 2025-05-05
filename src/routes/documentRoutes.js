@@ -71,6 +71,7 @@ router.get('/', auth, documentController.getAllDocuments);
 router.get('/:id', auth, documentController.getDocument);
 router.delete('/:id', auth, documentController.deleteDocument);
 router.get('/:id/download', auth, documentController.downloadDocument);
+router.put('/:id', auth, documentController.updateDocument);
 
 // Approval routes
 router.post('/:id/approve', auth, roleAuth(['boss']), documentController.approveDocument);

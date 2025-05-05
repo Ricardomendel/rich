@@ -14,6 +14,9 @@ const ViewDocument = () => {
   const { loading } = useAuth();
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  const [user, setUser] = useState(null);
+
   const [editForm, setEditForm] = useState({
     title: "",
     category: "",
@@ -51,6 +54,10 @@ const ViewDocument = () => {
 
   useEffect(() => {
     fetchDocument();
+
+    setUser(JSON.parse(localStorage.getItem("user")));
+
+    console.log("User from localStorage:", user);
   }, [fetchDocument]);
 
   const handleDownload = async (documentId, filename) => {
@@ -101,8 +108,8 @@ const ViewDocument = () => {
   const handleEdit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.patch(`/documents/${id}`, editForm);
-      setDocument(response.data);
+      const response = await api.put(`/documents/${id}`, editForm);
+      await fetchDocument(); // Refresh the document after editing
       setIsEditing(false);
     } catch (err) {
       setError("Failed to update document");
@@ -184,29 +191,31 @@ const ViewDocument = () => {
               <Pencil className="h-4 w-4 mr-2" />
               {isEditing ? "Cancel" : "Edit"}
             </button>
-            <button
-              onClick={() =>
-                approveDocument(
-                  document?._id,
-                  document?.approvalStatus === "approved"
-                    ? "rejected"
-                    : "approved"
-                )
-              }
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              {document?.approvalStatus === "approved" ? (
-                <>
-                  <X className="h-4 w-4 mr-2" />
-                  Revoke Approval
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Approve
-                </>
-              )}
-            </button>
+            {user?.role === "boss" && (
+              <button
+                onClick={() =>
+                  approveDocument(
+                    document?._id,
+                    document?.approvalStatus === "approved"
+                      ? "rejected"
+                      : "approved"
+                  )
+                }
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                {document?.approvalStatus === "approved" ? (
+                  <>
+                    <X className="h-4 w-4 mr-2" />
+                    Revoke Approval
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Approve
+                  </>
+                )}
+              </button>
+            )}
             <button
               onClick={handleDelete}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
