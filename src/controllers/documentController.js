@@ -90,9 +90,16 @@ const documentController = {
   // Get single document
   async getDocument(req, res) {
     try {
-      const document = await Document.findById(req.params.id).lean().exec();
+      const document = await Document.findById(req.params.id)
+        .populate("createdBy")
+        .lean()
+        .exec();
 
-      if (!document || document.createdBy.toString() !== req.user._id.toString()) {
+      if (
+        !document ||
+        (!req.user.role === "boss" &&
+          document.createdBy.toString() !== req.user._id.toString())
+      ) {
         return res.status(404).json({ error: "Document not found" });
       }
 
@@ -103,13 +110,40 @@ const documentController = {
     }
   },
 
+  // Update document
+  async updateDocument(req, res) {
+    try {
+      const document = await Document.findOne({
+        _id: req.params.id,
+        createdBy: req.user._id,
+      });
+
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      // Update document fields
+      document.title = req.body.title || document.title;
+      document.category = req.body.category || document.category;
+      document.tags = req.body.tags || document.tags;
+
+      await document.save();
+      res.json({ document });
+    } catch (error) {
+      console.error("Update error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
   // Download document
   async downloadDocument(req, res) {
     try {
       const document = await Document.findOne({
         _id: req.params.id,
         createdBy: req.user._id,
-      }).lean().exec();
+      })
+        .lean()
+        .exec();
 
       if (!document) {
         return res.status(404).json({ error: "Document not found" });
@@ -123,7 +157,10 @@ const documentController = {
         }
 
         res.setHeader("Content-Type", fileType);
-        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${fileName}"`
+        );
         res.setHeader("Content-Length", fileSize);
 
         const fileStream = fs.createReadStream(filePath);
